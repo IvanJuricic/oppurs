@@ -21,7 +21,7 @@
 #include "tim.h"
 
 /* USER CODE BEGIN 0 */
-
+uint32_t timer2_Ticks_Millisec;
 /* USER CODE END 0 */
 
 TIM_HandleTypeDef htim2;
@@ -107,5 +107,28 @@ void HAL_TIM_Base_MspDeInit(TIM_HandleTypeDef* tim_baseHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+  if(htim -> Instance == TIM2) {
+    timer2_Ticks_Millisec++;
+  }
+}
 
+uint32_t timer2_get_millisec() {
+  uint32_t value;
+  HAL_NVIC_DisableIRQ(TIM2_IRQHandler);
+  value = timer2_Ticks_Millisec;
+  HAL_NVIC_EnableIRQ(TIM2_IRQHandler);
+  return value;
+}
+
+void timer2_wait_millisec(uint32_t ms) {
+  uint32_t t1, t2;
+  t1 = timer2_get_millisec();
+
+  while(1) {
+    t2 = timer2_get_millisec();
+    if((t2 - t1) >= ms) break;
+    if(t2 < t1) break;
+  }
+}
 /* USER CODE END 1 */

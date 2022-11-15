@@ -29,18 +29,21 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include "stm32f4xx_it.h"
+#include "stm32f407xx.h"
 /* USER CODE END Includes */
 
 extern TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN Private defines */
-
+#define DELAY_MS    1000
 /* USER CODE END Private defines */
 
 void MX_TIM2_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+uint32_t timer2_get_millisec(void);
+void timer2_wait_millisec(uint32_t ms);
 
 /* USER CODE END Prototypes */
 

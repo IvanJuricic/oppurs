@@ -110,24 +110,23 @@ void SystemClock_Config(void)
 /* USER CODE BEGIN 4 */
 
 int main(void) {
-  int i = 0;
   HAL_Init();
   SystemClock_Config();
+  MX_TIM2_Init();
+  HAL_TIM_Base_Start_IT(&htim2);
   MX_GPIO_Init();
   while(1) {
-    for(i = 0; i < 1000000; i++) {
-      gpio_led_state(LED3_ORANGE_ID, 1);
-      gpio_led_state(LED5_RED_ID, 1);
-      gpio_led_state(LED4_GREEN_ID, 0);
-      gpio_led_state(LED6_BLUE_ID, 0);
-    }
+    timer2_wait_millisec(DELAY_MS);
+    gpio_led_state(LED3_ORANGE_ID, 1);
+    gpio_led_state(LED5_RED_ID, 1);
+    gpio_led_state(LED4_GREEN_ID, 0);
+    gpio_led_state(LED6_BLUE_ID, 0);
 
-    for(i = 0; i < 1000000; i++) {
-      gpio_led_state(LED3_ORANGE_ID, 0);
-      gpio_led_state(LED5_RED_ID, 0);
-      gpio_led_state(LED4_GREEN_ID, 1);
-      gpio_led_state(LED6_BLUE_ID, 1);
-    }
+    timer2_wait_millisec(DELAY_MS);
+    gpio_led_state(LED3_ORANGE_ID, 0);
+    gpio_led_state(LED5_RED_ID, 0);
+    gpio_led_state(LED4_GREEN_ID, 1);
+    gpio_led_state(LED6_BLUE_ID, 1);
   }
 }
 
