@@ -36,7 +36,7 @@ extern "C" {
 extern TIM_HandleTypeDef htim2;
 
 /* USER CODE BEGIN Private defines */
-#define DELAY_MS    1000
+#define DELAY_MS    100
 /* USER CODE END Private defines */
 
 void MX_TIM2_Init(void);

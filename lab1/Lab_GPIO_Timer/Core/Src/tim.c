@@ -115,9 +115,9 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
 
 uint32_t timer2_get_millisec() {
   uint32_t value;
-  HAL_NVIC_DisableIRQ(TIM2_IRQHandler);
+  HAL_NVIC_DisableIRQ(TIM2_IRQn);
   value = timer2_Ticks_Millisec;
-  HAL_NVIC_EnableIRQ(TIM2_IRQHandler);
+  HAL_NVIC_EnableIRQ(TIM2_IRQn);
   return value;
 }
 
