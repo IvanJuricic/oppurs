@@ -114,14 +114,14 @@ int main(void) {
   SystemClock_Config();
   MX_GPIO_Init();
   while(1) {
-    for(i = 0; i < 1000000; i++) {
+    for(i = 0; i < 10000; i++) {
       gpio_led_state(LED3_ORANGE_ID, 1);
       gpio_led_state(LED5_RED_ID, 1);
       gpio_led_state(LED4_GREEN_ID, 0);
       gpio_led_state(LED6_BLUE_ID, 0);
     }
 
-    for(i = 0; i < 1000000; i++) {
+    for(i = 0; i < 10000; i++) {
       gpio_led_state(LED3_ORANGE_ID, 0);
       gpio_led_state(LED5_RED_ID, 0);
       gpio_led_state(LED4_GREEN_ID, 1);
