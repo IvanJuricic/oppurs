@@ -45,6 +45,10 @@
 
 /* USER CODE BEGIN PV */
 
+char RX_BUFF[BUFF_SIZE];
+char TX_BUFF[MSG_BUFF];
+int RX_BUFF_HEAD, RX_BUFF_TAIL;
+uint8_t rx_data;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -55,7 +59,23 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
+int main(void) {
+	int flag = 0;
+	char c;
 
+	MX_USART2_UART_Init();
+
+	while(1) {
+		if(USART2_Dequeue(&c) != 0 && flag == 0) {
+			if(c == 'x') {
+				print(EXIT_MSG);
+				flag = 1;
+				continue;
+			}
+			USART2_SendChar(c);
+		}
+	}
+}
 /* USER CODE END 0 */
 
 /**

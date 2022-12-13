@@ -29,19 +29,28 @@ extern "C" {
 #include "main.h"
 
 /* USER CODE BEGIN Includes */
-
+#include <string.h>
+#include <stdio.h>
 /* USER CODE END Includes */
 
 extern UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN Private defines */
-
+#define BUFF_SIZE 50
+#define MSG_BUFF 50
+#define EXIT_MSG "\ndetected x, exiting loopback mode...."
 /* USER CODE END Private defines */
 
 void MX_USART2_UART_Init(void);
 
 /* USER CODE BEGIN Prototypes */
+extern char RX_BUFF[BUFF_SIZE];
+extern char TX_BUFF[MSG_BUFF];
+extern int RX_BUFF_HEAD, RX_BUFF_TAIL;
 
+void USART2_SendChar(uint8_t c);
+int USART2_Dequeue(char *c);
+void print(char *c);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

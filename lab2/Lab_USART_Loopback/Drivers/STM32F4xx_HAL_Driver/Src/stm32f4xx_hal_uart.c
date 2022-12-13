@@ -415,6 +415,7 @@ HAL_StatusTypeDef HAL_UART_Init(UART_HandleTypeDef *huart)
 
   /* Enable the peripheral */
   __HAL_UART_ENABLE(huart);
+  __HAL_UART_ENABLE_IT(huart, UART_IT_RXNE);
 
   /* Initialize the UART state */
   huart->ErrorCode = HAL_UART_ERROR_NONE;

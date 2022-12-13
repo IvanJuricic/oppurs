@@ -115,5 +115,57 @@ void HAL_UART_MspDeInit(UART_HandleTypeDef* uartHandle)
 }
 
 /* USER CODE BEGIN 1 */
+void USER_UART_IRQHandler(UART_HandleTypeDef* huart) {
+	if(huart->Instance == USART2) {
+		char rx_data;
+		rx_data = __HAL_UART_FLUSH_DRREGISTER(huart);
+
+		static char rx_head;
+		rx_head = RX_BUFF_HEAD + 1;
+		if(rx_head == BUFF_SIZE) {
+			rx_head = 0;
+		}
+		if(rx_head != RX_BUFF_TAIL) {
+			RX_BUFF[RX_BUFF_HEAD] = rx_data;
+			RX_BUFF_HEAD = rx_head;
+		}
+	}
+}
+
+void USART2_SendChar(uint8_t c) {
+	HAL_UART_Transmit(&huart2, &c, sizeof(c), 10);
+}
+
+int USART2_Dequeue(char *c) {
+	int ret;
+	ret = 0;
+	*c = 0;
+
+	HAL_NVIC_DisableIRQ(USART2_IRQn);
+
+	if(RX_BUFF_HEAD != RX_BUFF_TAIL) {
+
+		*c = RX_BUFF[RX_BUFF_TAIL];
+		RX_BUFF_TAIL++;
+
+		if(RX_BUFF_TAIL == BUFF_SIZE) {
+			RX_BUFF_TAIL = 0;
+		}
+
+		ret = 1;
+	}
+
+	HAL_NVIC_EnableIRQ(USART2_IRQn);
+	return ret;
+}
+
+void print(char *msg) {
+	memset(TX_BUFF, '\0', MSG_BUFF);
+	snprintf(TX_BUFF, MSG_BUFF, "%s\n", msg);
+	HAL_UART_Transmit(&huart2, (uint8_t *)TX_BUFF, strlen(TX_BUFF), 10);
+}
+
+
+
 
 /* USER CODE END 1 */
