@@ -1,3 +1,0 @@
-../Core/Src/gpio.c:42:6:MX_GPIO_Init	40	static
-../Core/Src/gpio.c:65:6:gpio_led_state	24	static
-../Core/Src/gpio.c:93:6:heartbeat_blink	16	static
