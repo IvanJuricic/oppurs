@@ -43,12 +43,15 @@ extern "C" {
 #define LED3_ORANGE_PinNumber   GPIO_PIN_13
 #define LED5_RED_PinNumber      GPIO_PIN_14
 #define LED6_BLUE_PinNumber     GPIO_PIN_15
+
+#define HEARTBEAT_PERIOD	1000
 /* USER CODE END Private defines */
 
 void MX_GPIO_Init(void);
 
 /* USER CODE BEGIN Prototypes */
 void gpio_led_state(uint8_t LED_ID, uint8_t state);
+void heartbeat_blink(uint8_t LED_ID);
 /* USER CODE END Prototypes */
 
 #ifdef __cplusplus

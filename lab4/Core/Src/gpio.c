@@ -89,4 +89,23 @@ void gpio_led_state(uint8_t LED_ID, uint8_t state) {
     break;
   }
 }
+
+void heartbeat_blink(uint8_t LED_ID) {
+	switch (LED_ID)
+	  {
+	  case LED4_GREEN_ID:
+	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_SET);
+	    HAL_Delay(100);
+	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_RESET);
+	    HAL_Delay(200);
+	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_SET);
+	    HAL_Delay(100);
+	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_RESET);
+	    HAL_Delay(600);
+	    break;
+
+	  default:
+	    break;
+	  }
+}
 /* USER CODE END 2 */

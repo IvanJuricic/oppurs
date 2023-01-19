@@ -69,7 +69,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	char *msg = "Hello there my man\n";
+	char *msg = "\r\nHello there my man";
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -101,8 +101,9 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-	  HAL_UART_Transmit_DMA(&huart2, (uint8_t *)msg, strlen(msg)+1);
-	  HAL_Delay(500);
+	  //HAL_UART_Transmit_DMA(&huart2, (uint8_t *)msg, strlen(msg));
+	  //timer2_wait_millisec(500);
+	  heartbeat_blink(LED4_GREEN_ID);
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
