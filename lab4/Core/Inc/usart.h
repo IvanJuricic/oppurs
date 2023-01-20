@@ -36,9 +36,13 @@ extern "C" {
 extern UART_HandleTypeDef huart2;
 
 /* USER CODE BEGIN Private defines */
-#define BUFF_SIZE 100
-#define MSG_BUFF 100
-#define EXIT_MSG "\ndetected x, exiting loopback mode...."
+#define BUFF_SIZE 	100
+#define MSG_BUFF 	100
+#define WELCOME_MSG	"\r\n\tLab4: Programming industrial embedded systems.\r\n\tPlease enter password: "
+#define OK_MSG		"\r\n\tOK\n"
+#define ERR_MSG		"\r\n\tERR\n"
+#define PASSWORD	"0036509685"
+#define NORMAL_MODE	"Normal operation mode active!"
 /* USER CODE END Private defines */
 
 void MX_USART2_UART_Init(void);

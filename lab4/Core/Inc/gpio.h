@@ -33,6 +33,10 @@ extern "C" {
 /* USER CODE END Includes */
 
 /* USER CODE BEGIN Private defines */
+#define USER_BUTTON_PIN			GPIO_PIN_0
+#define USER_BUTTON_GPIO_PORT	GPIOA
+#define USER_BUTTON_GPIO_CLK	RCC_AHB1Periph_GPIOA
+
 #define LED3_ORANGE_ID  1
 #define LED4_GREEN_ID  2
 #define LED5_RED_ID  3

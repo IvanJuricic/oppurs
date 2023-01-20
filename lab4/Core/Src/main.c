@@ -47,8 +47,14 @@
 /* USER CODE BEGIN PV */
 char RX_BUFF[BUFF_SIZE];
 char TX_BUFF[MSG_BUFF];
-int RX_BUFF_HEAD, RX_BUFF_TAIL;
+char *newline = "\n\n";
+
+int rx_id;
+
 uint8_t rx_data;
+uint8_t newline_detected = 0;
+uint8_t buttonPressed = 0;
+uint8_t normal_op = 0;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -69,7 +75,7 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-	char *msg = "\r\nHello there my man";
+	rx_id = 0;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -95,15 +101,64 @@ int main(void)
   MX_USART2_UART_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
+
+  memset(TX_BUFF, '\0', MSG_BUFF);
+  snprintf(TX_BUFF, MSG_BUFF, "%s\n", WELCOME_MSG);
+  HAL_UART_Transmit_DMA(&huart2, (uint8_t *)TX_BUFF, strlen(TX_BUFF));
+
+  HAL_Delay(200);
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+
+	  if(buttonPressed) {
+		  buttonPressed = 0;
+		  HAL_UART_Transmit_DMA(&huart2, (uint8_t *)TX_BUFF, strlen(TX_BUFF));
+	  }
+
+	  while(!normal_op) {
+		  HAL_UART_Receive_DMA(&huart2, &rx_data, 1);
+	  }
+
+
+	  //while (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE) == RESET);
+
+	  /*if(HAL_UART_Receive_DMA(&huart2, (uint8_t*)&RX_BUFF[rx_id], 1) != HAL_OK) {  }
+
+	  if(RX_BUFF[rx_id-1] == '\r' || RX_BUFF[rx_id-1] == '\n') {
+		  HAL_UART_Transmit_DMA(&huart2, RX_BUFF, rx_id);
+		  rx_id = 0;
+		  continue;
+	  }
+
+	  rx_id++;*/
+
 	  //HAL_UART_Transmit_DMA(&huart2, (uint8_t *)msg, strlen(msg));
 	  //timer2_wait_millisec(500);
-	  heartbeat_blink(LED4_GREEN_ID);
+	  //heartbeat_blink(LED4_GREEN_ID);
+/*
+	  HAL_UART_Receive_DMA(&huart2, &rx_data, 1);
+	  while (HAL_UART_GetState(&huart2) != HAL_UART_STATE_READY) { }
+	  if (rx_data == '\n') {
+	      newline_detected = 1;
+	  } else {
+		  RX_BUFF[RX_BUFF_TAIL] = rx_data;
+		  RX_BUFF_TAIL++;
+	  }
+
+	  if(newline_detected) {
+
+		  RX_BUFF[RX_BUFF_TAIL] = '\0';
+		  HAL_UART_Transmit_DMA(&huart2, RX_BUFF, sizeof(RX_BUFF));
+
+		  newline_detected = 0;
+		  RX_BUFF_TAIL = 0;
+
+	  }*/
+
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -157,7 +212,37 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
+	if(GPIO_Pin == USER_BUTTON_PIN) {
+		HAL_NVIC_DisableIRQ(EXTI0_IRQn);
+		buttonPressed = 1;
+		HAL_NVIC_EnableIRQ(EXTI0_IRQn);
+	}
+	else {
+		__NOP();
+	}
+}
 
+void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
+{
+    // If not '\n' or '\n' echo back the received character
+	if(rx_data == '\r' || rx_data == '\n') {
+		if(strcmp(RX_BUFF, PASSWORD) == 0) {
+			HAL_UART_Transmit_DMA(&huart2, (uint8_t *)OK_MSG, strlen(OK_MSG));
+			normal_op = 1;
+		} else {
+			HAL_UART_Transmit_DMA(&huart2, (uint8_t *)WELCOME_MSG, strlen(WELCOME_MSG));
+		}
+
+		memset(RX_BUFF, '\0', BUFF_SIZE);
+		rx_id = 0;
+	} else {
+		HAL_UART_Transmit_DMA(&huart2, &rx_data, 1);
+		RX_BUFF[rx_id] = rx_data;
+		rx_id++;
+	}
+
+}
 /* USER CODE END 4 */
 
 /**
