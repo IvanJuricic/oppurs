@@ -20,6 +20,8 @@
 #include "main.h"
 #include "cmsis_os.h"
 #include "dma.h"
+#include "i2c.h"
+#include "i2s.h"
 #include "tim.h"
 #include "usart.h"
 #include "gpio.h"
@@ -30,6 +32,9 @@
 #include "task.h"
 #include "queue.h"
 #include "semphr.h"
+#include "audio.h"
+#include <stdlib.h>
+#include "ctype.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -109,8 +114,11 @@ int main(void)
   MX_DMA_Init();
   MX_TIM2_Init();
   MX_USART2_UART_Init();
+  MX_I2C1_Init();
+  MX_I2S3_Init();
   /* USER CODE BEGIN 2 */
   HAL_TIM_Base_Start_IT(&htim2);
+  configAudio();
 
   memset(TX_BUFF, '\0', MSG_BUFF);
   snprintf(TX_BUFF, MSG_BUFF, "%s\n", WELCOME_MSG);
@@ -119,11 +127,10 @@ int main(void)
 
   xTaskCreate(vTask1, (const char *)"TASK_1", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
   xTaskCreate(vTask2, (const char *)"TASK_2", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+  xTaskCreate(vTask3, (const char *)"TASK_3", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+  xTaskCreate(vTask4, (const char *)"TASK_4", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
   vTaskStartScheduler();
   /* USER CODE END 2 */
-
-  /* Call init function for freertos objects (in freertos.c) */
-
 
 
   /* We should never get here as control is now taken by the scheduler */
@@ -131,50 +138,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-/*
-	  if(buttonPressed) {
-		  buttonPressed = 0;
-		  HAL_UART_Transmit_DMA(&huart2, (uint8_t *)TX_BUFF, strlen(TX_BUFF));
-	  }
-
-	  HAL_UART_Receive_DMA(&huart2, &rx_data, 1);*/
-
-
-	  //while (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE) == RESET);
-
-	  /*if(HAL_UART_Receive_DMA(&huart2, (uint8_t*)&RX_BUFF[rx_id], 1) != HAL_OK) {  }
-
-	  if(RX_BUFF[rx_id-1] == '\r' || RX_BUFF[rx_id-1] == '\n') {
-		  HAL_UART_Transmit_DMA(&huart2, RX_BUFF, rx_id);
-		  rx_id = 0;
-		  continue;
-	  }
-
-	  rx_id++;*/
-
-	  //HAL_UART_Transmit_DMA(&huart2, (uint8_t *)msg, strlen(msg));
-	  //timer2_wait_millisec(500);
-	  //heartbeat_blink(LED4_GREEN_ID);
-/*
-	  HAL_UART_Receive_DMA(&huart2, &rx_data, 1);
-	  while (HAL_UART_GetState(&huart2) != HAL_UART_STATE_READY) { }
-	  if (rx_data == '\n') {
-	      newline_detected = 1;
-	  } else {
-		  RX_BUFF[RX_BUFF_TAIL] = rx_data;
-		  RX_BUFF_TAIL++;
-	  }
-
-	  if(newline_detected) {
-
-		  RX_BUFF[RX_BUFF_TAIL] = '\0';
-		  HAL_UART_Transmit_DMA(&huart2, RX_BUFF, sizeof(RX_BUFF));
-
-		  newline_detected = 0;
-		  RX_BUFF_TAIL = 0;
-
-	  }*/
-
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
@@ -204,7 +167,7 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
   RCC_OscInitStruct.PLL.PLLM = 4;
-  RCC_OscInitStruct.PLL.PLLN = 72;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
@@ -218,10 +181,10 @@ void SystemClock_Config(void)
                               |RCC_CLOCKTYPE_PCLK1|RCC_CLOCKTYPE_PCLK2;
   RCC_ClkInitStruct.SYSCLKSource = RCC_SYSCLKSOURCE_PLLCLK;
   RCC_ClkInitStruct.AHBCLKDivider = RCC_SYSCLK_DIV1;
-  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;
-  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;
+  RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV4;
+  RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV2;
 
-  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK)
+  if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_5) != HAL_OK)
   {
     Error_Handler();
   }
@@ -240,10 +203,31 @@ void vTask2(void *pvParameters) {
 	}
 }
 
+void vTask3(void *pvParameters) {
+	while(1) {
+		if(!paused) {
+			gpio_led_state(LED6_BLUE_ID, 1);
+			vTaskDelay(100 / portTICK_PERIOD_MS);
+			gpio_led_state(LED6_BLUE_ID, 0);
+			vTaskDelay(100 / portTICK_PERIOD_MS);
+		}
+	}
+}
+
+void vTask4(void *pvParameters) {
+	while(1) {
+		if(buttonPressed) {
+			buttonPressed = 0;
+			if(paused) paused = 0;
+			else paused = 1;
+		}
+	}
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if(GPIO_Pin == USER_BUTTON_PIN) {
 		HAL_NVIC_DisableIRQ(EXTI0_IRQn);
-		buttonPressed = 0;
+		buttonPressed = 1;
 		HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 	}
 	else {
@@ -258,7 +242,7 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 		if(normal_op) {
 			if(RX_BUFF[0] == 'f' || RX_BUFF[0] == 'a') {
 				for(int i = 1; i < strlen(RX_BUFF); i++) {
-		            if (RX_BUFF[i] <= 0 && RX_BUFF[i] >= 9) {
+		            if (!isdigit((uint8_t)RX_BUFF[i]) && RX_BUFF[i] != '.') {
 		            	HAL_UART_Transmit_DMA(&huart2, (uint8_t *)ERR_MSG, strlen(ERR_MSG));
 		            }
 				}

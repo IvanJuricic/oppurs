@@ -20,11 +20,9 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
-#include "tim.h"
-#include "cmsis_os.h"
 
 /* USER CODE BEGIN 0 */
-
+#include "cmsis_os.h"
 /* USER CODE END 0 */
 
 /*----------------------------------------------------------------------------*/
@@ -47,12 +45,15 @@ void MX_GPIO_Init(void)
   GPIO_InitTypeDef GPIO_InitStruct = {0};
 
   /* GPIO Ports Clock Enable */
+  __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOD_CLK_ENABLE();
+  __HAL_RCC_GPIOB_CLK_ENABLE();
 
   /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
+  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15
+                          |GPIO_PIN_4, GPIO_PIN_RESET);
 
   /*Configure GPIO pin : PA0 */
   GPIO_InitStruct.Pin = GPIO_PIN_0;
@@ -65,6 +66,13 @@ void MX_GPIO_Init(void)
   GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
   GPIO_InitStruct.Pull = GPIO_NOPULL;
   GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
+
+  /*Configure GPIO pin : PD4 */
+  GPIO_InitStruct.Pin = GPIO_PIN_4;
+  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
+  GPIO_InitStruct.Pull = GPIO_PULLDOWN;
+  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
@@ -106,13 +114,13 @@ void heartbeat_blink(uint8_t LED_ID) {
 	switch (LED_ID)
 	  {
 	  case LED4_GREEN_ID:
-	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_SET);
+		gpio_led_state(LED4_GREEN_ID, 1);
 	    vTaskDelay(100 / portTICK_PERIOD_MS);
-	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_RESET);
+	    gpio_led_state(LED4_GREEN_ID, 0);
 	    vTaskDelay(200 / portTICK_PERIOD_MS);
-	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_SET);
+	    gpio_led_state(LED4_GREEN_ID, 1);
 	    vTaskDelay(100 / portTICK_PERIOD_MS);
-	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_RESET);
+	    gpio_led_state(LED4_GREEN_ID, 0);
 	    vTaskDelay(600 / portTICK_PERIOD_MS);
 	    break;
 
