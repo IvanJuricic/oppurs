@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "cmsis_os.h"
 #include "dma.h"
 #include "tim.h"
 #include "usart.h"
@@ -25,7 +26,10 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "FreeRTOS.h"
+#include "task.h"
+#include "queue.h"
+#include "semphr.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -50,11 +54,17 @@ char TX_BUFF[MSG_BUFF];
 char *newline = "\n\n";
 
 int rx_id;
+int paused = 0;
+int frequency = 440;
+
+float amplitude = 0.5;
 
 uint8_t rx_data;
 uint8_t newline_detected = 0;
-uint8_t buttonPressed = 0;
+uint8_t buttonPressed;
 uint8_t normal_op = 0;
+
+xTaskHandle xTaskHandle1, xTaskHandle2, xTaskHandle3, xTaskHandle4;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -105,23 +115,29 @@ int main(void)
   memset(TX_BUFF, '\0', MSG_BUFF);
   snprintf(TX_BUFF, MSG_BUFF, "%s\n", WELCOME_MSG);
   HAL_UART_Transmit_DMA(&huart2, (uint8_t *)TX_BUFF, strlen(TX_BUFF));
-
   HAL_Delay(200);
+
+  xTaskCreate(vTask1, (const char *)"TASK_1", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+  xTaskCreate(vTask2, (const char *)"TASK_2", configMINIMAL_STACK_SIZE, NULL, 1, NULL);
+  vTaskStartScheduler();
   /* USER CODE END 2 */
 
+  /* Call init function for freertos objects (in freertos.c) */
+
+
+
+  /* We should never get here as control is now taken by the scheduler */
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
-
+/*
 	  if(buttonPressed) {
 		  buttonPressed = 0;
 		  HAL_UART_Transmit_DMA(&huart2, (uint8_t *)TX_BUFF, strlen(TX_BUFF));
 	  }
 
-	  while(!normal_op) {
-		  HAL_UART_Receive_DMA(&huart2, &rx_data, 1);
-	  }
+	  HAL_UART_Receive_DMA(&huart2, &rx_data, 1);*/
 
 
 	  //while (__HAL_UART_GET_FLAG(&huart2, UART_FLAG_RXNE) == RESET);
@@ -212,10 +228,22 @@ void SystemClock_Config(void)
 }
 
 /* USER CODE BEGIN 4 */
+void vTask1(void *pvParameters) {
+	while(1) {
+		heartbeat_blink(LED4_GREEN_ID);
+	}
+}
+
+void vTask2(void *pvParameters) {
+	while(1) {
+		HAL_UART_Receive_DMA(&huart2, &rx_data, 1);
+	}
+}
+
 void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin) {
 	if(GPIO_Pin == USER_BUTTON_PIN) {
 		HAL_NVIC_DisableIRQ(EXTI0_IRQn);
-		buttonPressed = 1;
+		buttonPressed = 0;
 		HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 	}
 	else {
@@ -227,11 +255,31 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
 {
     // If not '\n' or '\n' echo back the received character
 	if(rx_data == '\r' || rx_data == '\n') {
-		if(strcmp(RX_BUFF, PASSWORD) == 0) {
-			HAL_UART_Transmit_DMA(&huart2, (uint8_t *)OK_MSG, strlen(OK_MSG));
-			normal_op = 1;
+		if(normal_op) {
+			if(RX_BUFF[0] == 'f' || RX_BUFF[0] == 'a') {
+				for(int i = 1; i < strlen(RX_BUFF); i++) {
+		            if (RX_BUFF[i] <= 0 && RX_BUFF[i] >= 9) {
+		            	HAL_UART_Transmit_DMA(&huart2, (uint8_t *)ERR_MSG, strlen(ERR_MSG));
+		            }
+				}
+
+				if(RX_BUFF[0] == 'f') {
+					sscanf(RX_BUFF, "f%d", &frequency);
+					HAL_UART_Transmit_DMA(&huart2, (uint8_t *)OK_MSG, strlen(OK_MSG));
+				} else if(RX_BUFF[0] == 'a') {
+					sscanf(RX_BUFF, "a%f", &amplitude);
+					HAL_UART_Transmit_DMA(&huart2, (uint8_t *)OK_MSG, strlen(OK_MSG));
+				}
+			} else {
+				HAL_UART_Transmit_DMA(&huart2, (uint8_t *)ERR_MSG, strlen(ERR_MSG));
+			}
 		} else {
-			HAL_UART_Transmit_DMA(&huart2, (uint8_t *)WELCOME_MSG, strlen(WELCOME_MSG));
+			if(strcmp(RX_BUFF, PASSWORD) == 0) {
+				HAL_UART_Transmit_DMA(&huart2, (uint8_t *)OK_MSG, strlen(OK_MSG));
+				normal_op = 1;
+			} else {
+				HAL_UART_Transmit_DMA(&huart2, (uint8_t *)WELCOME_MSG, strlen(WELCOME_MSG));
+			}
 		}
 
 		memset(RX_BUFF, '\0', BUFF_SIZE);

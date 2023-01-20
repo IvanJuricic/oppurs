@@ -31,7 +31,8 @@ extern "C" {
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include <stdio.h>
+#include "stm32f4xx_hal_tim.h"
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/
@@ -53,7 +54,10 @@ extern "C" {
 void Error_Handler(void);
 
 /* USER CODE BEGIN EFP */
-
+void vTask1(void *pvParameters);
+void vTask2(void *pvParameters);
+void vTask3(void *pvParameters);
+void vTask4(void *pvParameters);
 /* USER CODE END EFP */
 
 /* Private defines -----------------------------------------------------------*/

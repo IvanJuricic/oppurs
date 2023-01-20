@@ -20,6 +20,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "gpio.h"
+#include "tim.h"
+#include "cmsis_os.h"
 
 /* USER CODE BEGIN 0 */
 
@@ -66,7 +68,7 @@ void MX_GPIO_Init(void)
   HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /* EXTI interrupt init*/
-  HAL_NVIC_SetPriority(EXTI0_IRQn, 0, 0);
+  HAL_NVIC_SetPriority(EXTI0_IRQn, 5, 0);
   HAL_NVIC_EnableIRQ(EXTI0_IRQn);
 
 }
@@ -105,13 +107,13 @@ void heartbeat_blink(uint8_t LED_ID) {
 	  {
 	  case LED4_GREEN_ID:
 	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_SET);
-	    HAL_Delay(100);
+	    vTaskDelay(100 / portTICK_PERIOD_MS);
 	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_RESET);
-	    HAL_Delay(200);
+	    vTaskDelay(200 / portTICK_PERIOD_MS);
 	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_SET);
-	    HAL_Delay(100);
+	    vTaskDelay(100 / portTICK_PERIOD_MS);
 	    HAL_GPIO_WritePin(GPIOD, LED4_GREEN_PinNumber, GPIO_PIN_RESET);
-	    HAL_Delay(600);
+	    vTaskDelay(600 / portTICK_PERIOD_MS);
 	    break;
 
 	  default:
